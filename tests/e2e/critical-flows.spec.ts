@@ -50,6 +50,60 @@ test.describe("critical flows", () => {
     await expect(page.getByText("The Rescue")).toBeVisible();
   });
 
+  test("a saved job note reappears after reloading /jobs", async ({ page }) => {
+    await page.goto("/playthroughs?new=1");
+    await page.getByLabel("Character name").fill("Note Keeper");
+    await page.getByRole("button", { name: /create run/i }).click();
+    await expect(page.getByRole("heading", { name: "Note Keeper" }).first()).toBeVisible();
+
+    const noteText = "Chose to save Takemura — e2e note";
+
+    await page.goto("/jobs");
+    const card = page.locator("article").filter({ has: page.getByLabel("Status for The Rescue") });
+    await card.getByRole("button", { expanded: false }).click();
+    const notes = card.getByLabel("Personal notes & decisions");
+    await notes.fill(noteText);
+    // Persist via blur, then wait until the write is durably in IndexedDB so
+    // the reload below cannot race an in-flight Dexie transaction.
+    await notes.blur();
+    await page.waitForFunction(
+      (expected) =>
+        new Promise<boolean>((resolve) => {
+          const open = indexedDB.open("ultimate-cyberpunk-2077");
+          open.onsuccess = () => {
+            const conn = open.result;
+            if (!conn.objectStoreNames.contains("jobProgress")) {
+              conn.close();
+              resolve(false);
+              return;
+            }
+            const all = conn
+              .transaction("jobProgress", "readonly")
+              .objectStore("jobProgress")
+              .getAll();
+            all.onsuccess = () => {
+              conn.close();
+              resolve(all.result.some((row: { notes?: string }) => row && row.notes === expected));
+            };
+            all.onerror = () => {
+              conn.close();
+              resolve(false);
+            };
+          };
+          open.onerror = () => resolve(false);
+        }),
+      noteText,
+    );
+
+    // Reload: the note must re-hydrate the textarea (issue #3).
+    await page.reload();
+    const cardAfterReload = page
+      .locator("article")
+      .filter({ has: page.getByLabel("Status for The Rescue") });
+    await cardAfterReload.getByRole("button", { expanded: false }).click();
+    await expect(cardAfterReload.getByLabel("Personal notes & decisions")).toHaveValue(noteText);
+  });
+
   test("spoiler shield hides endgame content until revealed", async ({ page }) => {
     await page.goto("/playthroughs?new=1");
     await page.getByLabel("Character name").fill("Spoiler Averse");
