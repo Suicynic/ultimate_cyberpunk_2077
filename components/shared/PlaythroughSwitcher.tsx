@@ -11,7 +11,12 @@ export function PlaythroughSwitcher() {
   const { playthrough } = useActivePlaythrough();
   const playthroughs = usePlaythroughs();
 
-  if (!playthroughs || playthroughs.length === 0) {
+  // Only non-archived runs are selectable. If none are visible (no runs, or
+  // every run archived) show the "New run" affordance instead of an empty
+  // selector with a hidden active run.
+  const visiblePlaythroughs = (playthroughs ?? []).filter((p) => !p.archived);
+
+  if (visiblePlaythroughs.length === 0) {
     return (
       <Link
         href="/playthroughs"
@@ -33,13 +38,11 @@ export function PlaythroughSwitcher() {
         onChange={(e) => void setActivePlaythrough(e.target.value || undefined)}
         className="clip-chip min-h-[44px] max-w-[10rem] border border-line bg-panel-2 px-2 text-xs uppercase tracking-wider text-ink md:max-w-[14rem]"
       >
-        {playthroughs
-          .filter((p) => !p.archived)
-          .map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} · {LIFEPATH_LABEL[p.lifepath]}
-            </option>
-          ))}
+        {visiblePlaythroughs.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name} · {LIFEPATH_LABEL[p.lifepath]}
+          </option>
+        ))}
       </select>
     </div>
   );

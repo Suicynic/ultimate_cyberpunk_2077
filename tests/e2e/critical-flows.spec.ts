@@ -20,6 +20,20 @@ test.describe("critical flows", () => {
     await expect(page.getByText("Nomad", { exact: true })).toBeVisible();
   });
 
+  test("archiving the only run leaves no active run on the dashboard", async ({ page }) => {
+    await page.goto("/playthroughs?new=1");
+    await page.getByLabel("Character name").fill("Solo Archivable");
+    await page.getByRole("button", { name: /create run/i }).click();
+    await expect(page.getByRole("heading", { name: "Solo Archivable" }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Archive", exact: true }).click();
+    // The top-bar switcher must offer "New run" rather than a hidden active run.
+    await expect(page.getByRole("link", { name: /new run/i }).first()).toBeVisible();
+
+    await page.goto("/dashboard");
+    await expect(page.getByText("No active run detected")).toBeVisible();
+  });
+
   test("update a job status and see completion move", async ({ page }) => {
     await page.goto("/playthroughs?new=1");
     await page.getByLabel("Character name").fill("Job Tracker");

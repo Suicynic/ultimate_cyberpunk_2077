@@ -19,6 +19,27 @@ import type {
  * persistence backend can later be swapped or synced without touching UI code.
  */
 
+/**
+ * Resolve the effective active playthrough from a stored pointer and the full
+ * run list. Pure so the resolution rules are directly unit-testable.
+ *
+ * Rules: honor the stored pointer only if it names a visible (non-archived)
+ * run; otherwise fall back to the first visible run; return undefined when
+ * every run is archived (or there are none). An archived run is never the
+ * effective active run — even if the stored pointer (e.g. from an import)
+ * points at one.
+ */
+export function pickActivePlaythrough(
+  activeId: string | undefined,
+  runs: readonly Playthrough[],
+): Playthrough | undefined {
+  if (activeId) {
+    const found = runs.find((p) => p.id === activeId);
+    if (found && !found.archived) return found;
+  }
+  return runs.find((p) => !p.archived);
+}
+
 // --------------------------------------------------------------------------
 // Settings
 // --------------------------------------------------------------------------
@@ -282,8 +303,10 @@ export async function deletePlaythrough(id: string): Promise<void> {
       ]);
       const settings = await getSettings();
       if (settings.activePlaythroughId === id) {
-        const remaining = await db.playthroughs.toCollection().first();
-        await updateSettings({ activePlaythroughId: remaining?.id });
+        // Prefer a visible survivor; clear the pointer if only archived runs
+        // (or none) remain so mutations never flow into a hidden run.
+        const survivor = await db.playthroughs.filter((p) => !p.archived).first();
+        await updateSettings({ activePlaythroughId: survivor?.id });
       }
     },
   );

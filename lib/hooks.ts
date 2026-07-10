@@ -2,6 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, DEFAULT_SETTINGS } from "@/lib/database/db";
+import { pickActivePlaythrough } from "@/lib/database/repo";
 import { useUiStore } from "@/lib/stores/ui";
 import type { AppSettings, Playthrough, SpoilerLevel, SpoilerMode } from "@/types/domain";
 import { isShielded } from "@/lib/spoilers";
@@ -26,15 +27,8 @@ export function useActivePlaythrough(): {
 } {
   const result = useLiveQuery(async () => {
     const settings = (await db.settings.get("app")) ?? DEFAULT_SETTINGS;
-    if (settings.activePlaythroughId) {
-      const found = await db.playthroughs.get(settings.activePlaythroughId);
-      if (found) return { playthrough: found };
-    }
-    // Fall back to a visible (non-archived) run so an archived run is never
-    // silently reactivated; only use an archived run if nothing else exists.
-    const firstActive = await db.playthroughs.filter((p) => !p.archived).first();
-    const first = firstActive ?? (await db.playthroughs.toCollection().first());
-    return { playthrough: first };
+    const runs = await db.playthroughs.orderBy("updatedAt").reverse().toArray();
+    return { playthrough: pickActivePlaythrough(settings.activePlaythroughId, runs) };
   }, []);
   return { playthrough: result?.playthrough, loading: result === undefined };
 }

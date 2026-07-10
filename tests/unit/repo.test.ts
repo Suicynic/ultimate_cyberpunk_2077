@@ -5,6 +5,7 @@ import {
   deletePlaythrough,
   duplicatePlaythrough,
   getSettings,
+  pickActivePlaythrough,
   revealSpoiler,
   setActivePlaythrough,
   setJobNotes,
@@ -13,6 +14,7 @@ import {
   toggleJobPinned,
   updateSettings,
 } from "@/lib/database/repo";
+import type { Playthrough } from "@/types/domain";
 import { newId, nowIso } from "@/lib/ids";
 
 beforeEach(async () => {
@@ -139,10 +141,22 @@ describe("playthrough lifecycle", () => {
     expect((await db.playthroughs.get(a.id))?.archived).toBe(true);
   });
 
-  it("archiving the only run clears the active pointer", async () => {
+  it("archiving the only run clears the pointer and leaves no active run", async () => {
     const a = await makeRun("Lonely");
     await setActivePlaythrough(a.id);
     await setPlaythroughArchived(a.id, true);
+    expect((await getSettings()).activePlaythroughId).toBeUndefined();
+    // The resolver must not fall back to the archived run.
+    const runs = await db.playthroughs.toArray();
+    expect(pickActivePlaythrough(undefined, runs)).toBeUndefined();
+  });
+
+  it("deleting the active run when only archived runs remain clears the pointer", async () => {
+    const archived = await makeRun("Archived");
+    const active = await makeRun("Active");
+    await setPlaythroughArchived(archived.id, true);
+    await setActivePlaythrough(active.id);
+    await deletePlaythrough(active.id);
     expect((await getSettings()).activePlaythroughId).toBeUndefined();
   });
 
@@ -223,5 +237,51 @@ describe("settings", () => {
     const settings = await getSettings();
     expect(settings.spoilerMode).toBe("hide_all");
     expect(settings.revealedSpoilers).toEqual(["job:the-heist"]);
+  });
+});
+
+describe("pickActivePlaythrough (resolution rules)", () => {
+  const run = (id: string, archived = false): Playthrough => ({
+    id,
+    name: id,
+    lifepath: "nomad",
+    difficulty: "normal",
+    platform: "pc_steam",
+    gameVersion: "2.3",
+    hasPhantomLiberty: true,
+    level: 1,
+    streetCred: 1,
+    act: 1,
+    status: "active",
+    tags: [],
+    archived,
+    createdAt: "",
+    updatedAt: "",
+  });
+
+  it("honors a stored pointer to a visible run", () => {
+    const runs = [run("a"), run("b")];
+    expect(pickActivePlaythrough("b", runs)?.id).toBe("b");
+  });
+
+  it("ignores a stored pointer to an archived run (e.g. from an import)", () => {
+    const runs = [run("a"), run("archived", true)];
+    // Pointer names the archived run — must fall through to the visible one.
+    expect(pickActivePlaythrough("archived", runs)?.id).toBe("a");
+  });
+
+  it("returns undefined when every run is archived", () => {
+    const runs = [run("x", true), run("y", true)];
+    expect(pickActivePlaythrough("x", runs)).toBeUndefined();
+    expect(pickActivePlaythrough(undefined, runs)).toBeUndefined();
+  });
+
+  it("returns undefined when there are no runs", () => {
+    expect(pickActivePlaythrough(undefined, [])).toBeUndefined();
+  });
+
+  it("falls back to the first visible run when the pointer is empty", () => {
+    const runs = [run("a", true), run("b"), run("c")];
+    expect(pickActivePlaythrough(undefined, runs)?.id).toBe("b");
   });
 });
