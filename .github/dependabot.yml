@@ -1,0 +1,48 @@
+version: 2
+
+updates:
+  # npm dependencies from package.json and package-lock.json
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Chicago"
+
+    # Prevent excessive simultaneous version-update PRs.
+    open-pull-requests-limit: 5
+
+    # Combine routine updates while leaving major upgrades in separate PRs.
+    groups:
+      production-minor-and-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+
+      development-minor-and-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Actions used in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "America/Chicago"
+
+    open-pull-requests-limit: 3
+
+    # Group routine action updates, but isolate major-version changes.
+    groups:
+      github-actions-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
