@@ -48,6 +48,18 @@ describe("iPhone safe-area handling (issue #2)", () => {
       expect(css).toContain("env(safe-area-inset-top, 0px)");
       expect(css).toContain("var(--sa-pt, 0px)");
     });
+
+    it("provides inset-aware position offsets for edge-anchored controls", () => {
+      // top/left *position* utilities (not padding) for the focused skip link.
+      expect(css).toContain("@utility top-safe");
+      expect(css).toContain("@utility left-safe");
+      expect(css).toMatch(
+        /top:\s*max\(\s*var\(--sa-top,[^)]*\)\s*,\s*env\(safe-area-inset-top,[^)]*\)\s*\)/,
+      );
+      expect(css).toMatch(
+        /left:\s*max\(\s*var\(--sa-left,[^)]*\)\s*,\s*env\(safe-area-inset-left,[^)]*\)\s*\)/,
+      );
+    });
   });
 
   describe("application to edge-reaching surfaces only", () => {
@@ -74,6 +86,16 @@ describe("iPhone safe-area handling (issue #2)", () => {
 
     it("pads the map mobile bottom sheet where it meets the home indicator", () => {
       expect(mapPage).toMatch(/fixed inset-x-0 bottom-0[^"]*pb-safe/);
+    });
+
+    it("positions the focused skip link clear of the top/left insets", () => {
+      const skip = shell.match(/<a\s+href="#main-content"[^>]*>/s)?.[0] ?? "";
+      // Inset-aware position offsets, not padding — it is an interactive control.
+      expect(skip).toContain("focus:top-safe");
+      expect(skip).toContain("focus:left-safe");
+      // Preserves its 0.5rem base offset where the inset is 0 (desktop).
+      expect(skip).toContain("[--sa-top:0.5rem]");
+      expect(skip).toContain("[--sa-left:0.5rem]");
     });
 
     it("does not blanket every panel — the centered Dialog is left untouched", () => {

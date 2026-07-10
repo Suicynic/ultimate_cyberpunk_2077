@@ -130,6 +130,15 @@ html[data-reduced-effects="true"] *::after {
   padding-left: max(var(--sa-px, 0px), env(safe-area-inset-left, 0px));
   padding-right: max(var(--sa-px, 0px), env(safe-area-inset-right, 0px));
 }
+/* Inset-aware *position* offsets (not padding) for a fixed/absolute control that
+   sits at an edge — e.g. the skip link, which becomes visible & interactive when
+   focused. Same max(base, inset) contract, so the base offset is kept at 0 inset. */
+@utility top-safe {
+  top: max(var(--sa-top, 0px), env(safe-area-inset-top, 0px));
+}
+@utility left-safe {
+  left: max(var(--sa-left, 0px), env(safe-area-inset-left, 0px));
+}
 
 /* Angular panel corner — the signature shape of the design system. */
 .clip-panel {

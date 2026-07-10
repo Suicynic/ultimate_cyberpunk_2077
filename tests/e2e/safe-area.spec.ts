@@ -42,6 +42,28 @@ test.describe("safe-area handling (issue #2)", () => {
     expect(paddingLeft).toBeGreaterThanOrEqual(12);
   });
 
+  test("focused skip link is inset-aware and keeps its base position at 0 inset", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+    const skip = page.getByRole("link", { name: /skip to main content/i });
+    // sr-only until focused; becomes a visible, interactive control on focus.
+    await skip.focus();
+    await expect(skip).toBeVisible();
+
+    const cls = (await skip.getAttribute("class")) ?? "";
+    expect(cls).toContain("focus:top-safe");
+    expect(cls).toContain("focus:left-safe");
+
+    // With a 0 inset, max(0.5rem, 0) keeps the link at its 8px desktop offset —
+    // proving no regression while the position is now inset-aware on real devices.
+    const pos = await skip.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { top: s.top, left: s.left };
+    });
+    expect(pos).toEqual({ top: "8px", left: "8px" });
+  });
+
   test("mobile nav drawer stays full-height with inset-aware padding", async ({
     page,
     isMobile,

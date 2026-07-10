@@ -76,9 +76,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <EffectsController />
       <CommandPalette />
 
+      {/* Visible only when focused, and positioned against the physical viewport
+          edge under viewport-fit=cover — so its top/left offsets must clear the
+          notch / status bar / landscape inset. Base 0.5rem kept where inset 0. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
+        className="sr-only [--sa-left:0.5rem] [--sa-top:0.5rem] focus:not-sr-only focus:absolute focus:left-safe focus:top-safe focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
       >
         Skip to main content
       </a>
