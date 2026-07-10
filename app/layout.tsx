@@ -29,6 +29,10 @@ export const viewport: Viewport = {
   themeColor: "#07090d",
   width: "device-width",
   initialScale: 1,
+  // Opt into the full display on notched / Dynamic-Island iPhones. Without
+  // viewport-fit=cover, iOS Safari keeps every env(safe-area-inset-*) at 0, so
+  // the safe-area padding utilities in globals.css would be no-ops. See issue #2.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

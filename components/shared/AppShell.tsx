@@ -76,9 +76,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <EffectsController />
       <CommandPalette />
 
+      {/* Visible only when focused, and positioned against the physical viewport
+          edge under viewport-fit=cover — so its top/left offsets must clear the
+          notch / status bar / landscape inset. Base 0.5rem kept where inset 0. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
+        className="sr-only [--sa-left:0.5rem] [--sa-top:0.5rem] focus:not-sr-only focus:absolute focus:left-safe focus:top-safe focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
       >
         Skip to main content
       </a>
@@ -112,8 +115,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-panel/95 px-3 py-2 backdrop-blur md:px-5">
+        {/* Top bar — sticky at the top edge: pad past the status bar / notch on
+            iOS, and past the side insets in landscape. Base spacing (py-2 top,
+            px-3 / md:px-5 sides) is preserved where the inset is 0. */}
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-panel/95 pb-2 pt-safe [--sa-pt:0.5rem] px-safe [--sa-px:0.75rem] backdrop-blur md:[--sa-px:1.25rem]">
           <button
             type="button"
             className="clip-chip flex h-11 w-11 items-center justify-center border border-line text-ink lg:hidden"
@@ -159,7 +164,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             />
             <nav
               aria-label="Primary"
-              className="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-line bg-panel p-3"
+              // Full-height fixed drawer: pad its top past the notch, its bottom
+              // past the home indicator, and its left past the side inset so the
+              // nav controls stay reachable. Right edge is interior (keeps pr-3).
+              className="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-line bg-panel pr-3 pt-safe [--sa-pt:0.75rem] pb-safe [--sa-pb:0.75rem] pl-safe [--sa-pl:0.75rem]"
             >
               <p className="readout mb-2 px-2">{"// navigation"}</p>
               <NavLinks onNavigate={() => setMobileNavOpen(false)} />
@@ -167,11 +175,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-3 py-6 md:px-6">
+        {/* Horizontal gutters follow the side insets in landscape so content
+            never slides under the notch; base px-3 / md:px-6 kept where inset 0. */}
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-6xl flex-1 py-6 px-safe [--sa-px:0.75rem] md:[--sa-px:1.5rem]"
+        >
           {children}
         </main>
 
-        <footer className="border-t border-line px-4 py-4 text-center">
+        {/* Last element in the scroll flow: pad its bottom past the home
+            indicator and its sides past the landscape insets (base p-4 kept). */}
+        <footer className="border-t border-line pt-4 pb-safe [--sa-pb:1rem] px-safe [--sa-px:1rem] text-center">
           <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-ink-faint">
             Unofficial fan project. Not affiliated with, endorsed by, or sponsored by CD Projekt
             Red. Cyberpunk 2077 and related marks are the property of their respective owners. All
