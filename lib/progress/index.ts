@@ -148,13 +148,12 @@ export function achievementPercent(
       return target === 0 ? 0 : Math.round((count / target) * 100);
     }
     case "checklist": {
-      const steps = def.progressModel.steps.length;
+      // Capture the narrowed steps before the closure (narrowing is lost inside callbacks).
+      const stepDefs = def.progressModel.steps;
       const done = (progress?.steps ?? []).filter((s) =>
-        def.progressModel.type === "checklist"
-          ? def.progressModel.steps.some((step) => step.id === s)
-          : false,
+        stepDefs.some((step) => step.id === s),
       ).length;
-      return steps === 0 ? 0 : Math.round((done / steps) * 100);
+      return stepDefs.length === 0 ? 0 : Math.round((done / stepDefs.length) * 100);
     }
   }
 }

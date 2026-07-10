@@ -29,9 +29,9 @@ for (const list of [jobs, achievements, mapMarkers, collectibles, endings, relat
 }
 
 async function head(url: string): Promise<{ ok: boolean; status: number | string }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
     let res = await fetch(url, {
       method: "HEAD",
       redirect: "follow",
@@ -47,10 +47,11 @@ async function head(url: string): Promise<{ ok: boolean; status: number | string
         headers: { "user-agent": "uc77-link-check/1.0 (+github community project)" },
       });
     }
-    clearTimeout(timer);
     return { ok: res.ok, status: res.status };
   } catch (err) {
     return { ok: false, status: err instanceof Error ? err.name : "error" };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

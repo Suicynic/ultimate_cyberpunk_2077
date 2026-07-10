@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <a
         href="#main-content"
-        className="visually-hidden focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:bg-holo focus:px-3 focus:py-2 focus:text-void"
       >
         Skip to main content
       </a>

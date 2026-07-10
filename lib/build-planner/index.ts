@@ -107,21 +107,17 @@ export function encodeBuildToUrlParam(build: Build): string {
     t: build.tags,
   };
   const json = JSON.stringify(payload);
-  // btoa handles ASCII only; escape multibyte characters first.
-  return encodeURIComponent(
-    typeof btoa !== "undefined"
-      ? btoa(unescape(encodeURIComponent(json)))
-      : Buffer.from(json).toString("base64"),
-  );
+  // btoa handles binary strings only — encode UTF-8 via TextEncoder first.
+  const bytes = new TextEncoder().encode(json);
+  const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join("");
+  return encodeURIComponent(btoa(binary));
 }
 
 export function decodeBuildFromUrlParam(param: string): Partial<Build> | null {
   try {
-    const b64 = decodeURIComponent(param);
-    const json =
-      typeof atob !== "undefined"
-        ? decodeURIComponent(escape(atob(b64)))
-        : Buffer.from(b64, "base64").toString("utf8");
+    const binary = atob(decodeURIComponent(param));
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    const json = new TextDecoder().decode(bytes);
     const payload = JSON.parse(json) as {
       n?: string;
       v?: string;
