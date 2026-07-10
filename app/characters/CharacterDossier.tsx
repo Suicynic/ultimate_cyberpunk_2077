@@ -71,7 +71,7 @@ function PlayerRecord({ character }: { character: CharacterDef }) {
   );
 }
 
-function PlayerRecordForm({
+export function PlayerRecordForm({
   playthroughId,
   character,
   row,
@@ -80,7 +80,28 @@ function PlayerRecordForm({
   character: CharacterDef;
   row: CharacterProgress | undefined;
 }) {
-  const [notesDraft, setNotesDraft] = React.useState(row?.notes ?? "");
+  // Notes reconciliation mirrors JobCard (issue #3). `row` is delivered by the
+  // parent's useLiveQuery and can change *without* this form remounting (its key
+  // is stable per run+character), so the draft cannot simply be seeded once at
+  // mount. We reconcile the persisted value into the draft during render:
+  //  - adopt an external change only while the draft is clean and unfocused;
+  //  - defer a clean update while the field is focused (text never shifts under
+  //    the caret), adopting it on the post-blur render;
+  //  - never clobber a dirty local edit, and never write a stale draft back over
+  //    a newer persisted value (blur compares against `syncedNotes`, the
+  //    reconciliation baseline, not the latest `row.notes`).
+  const persistedNotes = row?.notes ?? "";
+  const [notesDraft, setNotesDraft] = React.useState(persistedNotes);
+  const [syncedNotes, setSyncedNotes] = React.useState(persistedNotes);
+  const [notesFocused, setNotesFocused] = React.useState(false);
+
+  if (persistedNotes !== syncedNotes) {
+    const dirty = notesDraft !== syncedNotes;
+    const deferUntilBlur = !dirty && notesFocused;
+    if (!deferUntilBlur) setSyncedNotes(persistedNotes);
+    if (!dirty && !notesFocused) setNotesDraft(persistedNotes);
+  }
+
   const encountered = row?.encountered ?? false;
 
   return (
@@ -99,8 +120,15 @@ function PlayerRecordForm({
           id={`character-notes-${character.id}`}
           value={notesDraft}
           onChange={(e) => setNotesDraft(e.target.value)}
+          onFocus={() => setNotesFocused(true)}
           onBlur={() => {
-            if (notesDraft !== (row?.notes ?? "")) {
+            setNotesFocused(false);
+            // Persist only a genuine user edit — the draft diverging from the
+            // reconciliation baseline. Comparing against `syncedNotes` (not
+            // `persistedNotes`) means an external update that arrived while the
+            // field was focused-but-untouched is adopted on the post-blur render
+            // instead of being overwritten by the stale draft.
+            if (notesDraft !== syncedNotes) {
               void setCharacterProgress(playthroughId, character.id, { notes: notesDraft });
             }
           }}
