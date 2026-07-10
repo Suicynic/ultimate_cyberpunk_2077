@@ -97,6 +97,40 @@ html[data-reduced-effects="true"] *::after {
   background: rgba(88, 230, 217, 0.3);
 }
 
+/* ---------------------------------------------------------------------------
+ * Safe-area utilities (iOS notch / Dynamic Island / home indicator) — issue #2
+ *
+ * iOS Safari only exposes non-zero env(safe-area-inset-*) once the viewport
+ * opts in with viewport-fit=cover (set in the `viewport` export of
+ * app/layout.tsx). Each utility combines a per-element base spacing — supplied
+ * via the matching --sa-* custom property, default 0 — with the device inset
+ * using max(), so:
+ *   • on desktop, Android and non-notched screens the inset is 0 and the base
+ *     spacing is preserved exactly (no visual change);
+ *   • on notched / Dynamic-Island iPhones the larger inset wins, keeping content
+ *     clear of the status bar, camera housing and home indicator.
+ * Exactly one padding declaration is emitted per side, so pairing a utility with
+ * its --sa-* base never double-pads. Apply only where a surface reaches a
+ * physical viewport edge — not to every nested panel.
+ * ------------------------------------------------------------------------- */
+@utility pt-safe {
+  padding-top: max(var(--sa-pt, 0px), env(safe-area-inset-top, 0px));
+}
+@utility pr-safe {
+  padding-right: max(var(--sa-pr, 0px), env(safe-area-inset-right, 0px));
+}
+@utility pb-safe {
+  padding-bottom: max(var(--sa-pb, 0px), env(safe-area-inset-bottom, 0px));
+}
+@utility pl-safe {
+  padding-left: max(var(--sa-pl, 0px), env(safe-area-inset-left, 0px));
+}
+/* Horizontal shorthand — both gutters share the --sa-px base. */
+@utility px-safe {
+  padding-left: max(var(--sa-px, 0px), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sa-px, 0px), env(safe-area-inset-right, 0px));
+}
+
 /* Angular panel corner — the signature shape of the design system. */
 .clip-panel {
   clip-path: polygon(

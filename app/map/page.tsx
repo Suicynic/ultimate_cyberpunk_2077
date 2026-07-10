@@ -264,7 +264,11 @@ function MapPageInner() {
         <div
           className={
             selected
-              ? "fixed inset-x-0 bottom-0 z-40 max-h-[60dvh] overflow-y-auto border-t border-line-bright bg-panel p-4 lg:static lg:z-auto lg:max-h-none lg:border lg:border-line lg:clip-panel"
+              ? // Mobile bottom sheet pinned to the bottom edge + full width: pad
+                // its bottom past the home indicator and its sides past landscape
+                // insets. On lg it becomes a static side panel (insets are 0 on
+                // desktop, so the base p-4 spacing is preserved).
+                "fixed inset-x-0 bottom-0 z-40 max-h-[60dvh] overflow-y-auto border-t border-line-bright bg-panel pt-4 pb-safe [--sa-pb:1rem] px-safe [--sa-px:1rem] lg:static lg:z-auto lg:max-h-none lg:border lg:border-line lg:clip-panel"
               : "hidden lg:block"
           }
         >
