@@ -187,7 +187,12 @@ export function JobCard({
                   onFocus={() => setNotesFocused(true)}
                   onBlur={() => {
                     setNotesFocused(false);
-                    if (notesDraft !== persistedNotes) {
+                    // Persist only a genuine user edit — the draft diverging from
+                    // the reconciliation baseline. Comparing against `syncedNotes`
+                    // (not `persistedNotes`) means a persisted value that changed
+                    // while the field was focused-but-untouched is adopted on the
+                    // post-blur render instead of being clobbered by a stale draft.
+                    if (notesDraft !== syncedNotes) {
                       void setJobNotes(playthroughId, job.id, notesDraft);
                     }
                   }}

@@ -135,6 +135,41 @@ describe("JobCard notes hydration (issue #3)", () => {
     await waitFor(() => expect(notesField()).toHaveValue("second"));
   });
 
+  it("defers an external update while focused-but-clean, then adopts it on blur without writing the stale value", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <JobCard
+        job={JOB}
+        progress={progressRow(RUN_ID, "original")}
+        playthroughId={RUN_ID}
+        focused={false}
+      />,
+    );
+    await expand(user);
+    // Focus the field without typing anything — the draft stays clean.
+    await user.click(notesField());
+    expect(notesField()).toHaveValue("original");
+
+    // An external write lands while the field is focused. Adoption is deferred
+    // so text never shifts under the caret: the value must stay stable.
+    rerender(
+      <JobCard
+        job={JOB}
+        progress={progressRow(RUN_ID, "external update")}
+        playthroughId={RUN_ID}
+        focused={false}
+      />,
+    );
+    expect(notesField()).toHaveValue("original");
+
+    // On blur the deferred value is adopted, and the stale draft must NOT be
+    // written back to Dexie (which would clobber the external update).
+    await user.tab();
+    await waitFor(() => expect(notesField()).toHaveValue("external update"));
+    const row = await db.jobProgress.get(progressId(RUN_ID, JOB.id));
+    expect(row).toBeUndefined();
+  });
+
   it("keeps an empty persisted note empty", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
