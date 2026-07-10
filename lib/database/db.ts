@@ -3,6 +3,7 @@ import type {
   AchievementProgress,
   AppSettings,
   Build,
+  CharacterProgress,
   CollectibleProgress,
   CustomMarker,
   DecisionEntry,
@@ -33,6 +34,7 @@ export class UC77Database extends Dexie {
   decisions!: EntityTable<DecisionEntry, "id">;
   endingProgress!: EntityTable<EndingProgress, "id">;
   relationshipProgress!: EntityTable<RelationshipProgress, "id">;
+  characterProgress!: EntityTable<CharacterProgress, "id">;
   builds!: EntityTable<Build, "id">;
   notes!: EntityTable<Note, "id">;
   pins!: EntityTable<PinnedObjective, "id">;
@@ -54,6 +56,10 @@ export class UC77Database extends Dexie {
       notes: "id, playthroughId, pinned, updatedAt",
       pins: "id, playthroughId, kind",
       settings: "id",
+    });
+    // v2 adds per-run character encounter/notes tracking (additive).
+    this.version(2).stores({
+      characterProgress: "id, playthroughId, characterId",
     });
   }
 }

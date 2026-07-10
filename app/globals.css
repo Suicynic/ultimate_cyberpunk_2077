@@ -165,6 +165,17 @@ html[data-reduced-effects="true"] *::after {
   color: var(--color-ink-faint);
 }
 
+/* Static diagnostic grid — used by the character-portrait fallback. Purely
+   decorative and non-animated, so it needs no reduced-effects handling. */
+.dossier-grid {
+  background-color: var(--color-panel-2);
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: -1px -1px;
+}
+
 /* Subtle glitch hover for headings — disabled under reduced effects. */
 @keyframes uc-flicker {
   0%,

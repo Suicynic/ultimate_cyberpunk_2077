@@ -5,18 +5,24 @@
  * referential integrity: prerequisites, related IDs, and marker links must
  * point at records that exist. Fails the build on any violation.
  */
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { achievements } from "../../data/achievements";
 import { attributes, perks, relicPerks } from "../../data/build";
+import { characters } from "../../data/characters";
 import { collectibles } from "../../data/collections";
 import { endings, relationships } from "../../data/endings";
+import { factions } from "../../data/factions";
 import { jobs } from "../../data/jobs";
 import { mapMarkers } from "../../data/map";
 import { resources } from "../../data/resources";
 import {
   achievementDefSchema,
   attributeDefSchema,
+  characterDefSchema,
   collectibleDefSchema,
   endingDefSchema,
+  factionDefSchema,
   jobDefSchema,
   mapMarkerDefSchema,
   perkDefSchema,
@@ -67,6 +73,8 @@ check("collectibles", collectibles, collectibleDefSchema);
 check("endings", endings, endingDefSchema);
 check("relationships", relationships, relationshipDefSchema);
 check("resources", resources, resourceDefSchema);
+check("factions", factions, factionDefSchema);
+check("characters", characters, characterDefSchema);
 
 // Referential integrity -----------------------------------------------------
 console.log("Checking referential integrity…");
@@ -114,6 +122,63 @@ for (const r of relationships) {
 for (const p of perks) {
   for (const req of p.requiresPerkIds ?? [])
     refCheck("perks", p.id, "requiresPerkIds", req, perkIds);
+}
+
+// Characters & factions ------------------------------------------------------
+const characterIds = new Set(characters.map((c) => c.id));
+const factionIds = new Set(factions.map((f) => f.id));
+
+const uniqueField = (dataset: string, field: string, values: string[]) => {
+  const seen = new Set<string>();
+  for (const v of values) {
+    if (seen.has(v)) {
+      failures++;
+      console.error(`✗ [${dataset}] duplicate ${field}: ${v}`);
+    }
+    seen.add(v);
+  }
+};
+
+uniqueField(
+  "characters",
+  "slug",
+  characters.map((c) => c.slug),
+);
+uniqueField(
+  "characters",
+  "archiveId",
+  characters.map((c) => c.archiveId),
+);
+
+for (const c of characters) {
+  for (const r of c.relatedCharacterIds ?? [])
+    refCheck("characters", c.id, "relatedCharacterIds", r, characterIds);
+  for (const f of c.relatedFactionIds ?? [])
+    refCheck("characters", c.id, "relatedFactionIds", f, factionIds);
+  for (const j of c.firstRelevantJobIds ?? [])
+    refCheck("characters", c.id, "firstRelevantJobIds", j, jobIds);
+
+  // Spoiler classification must be internally consistent.
+  const hasSpoiler = Boolean(c.spoilerBiography);
+  if (hasSpoiler && c.spoilerLevel === "none") {
+    failures++;
+    console.error(`✗ [characters] ${c.id}: spoilerBiography requires a spoilerLevel above none`);
+  }
+  if (!hasSpoiler && c.spoilerLevel !== "none") {
+    failures++;
+    console.error(
+      `✗ [characters] ${c.id}: spoilerLevel "${c.spoilerLevel}" requires a spoilerBiography`,
+    );
+  }
+
+  // Portrait paths must resolve to a local asset under /public.
+  if (c.portrait) {
+    const abs = path.join(process.cwd(), "public", c.portrait.replace(/^\//, ""));
+    if (!existsSync(abs)) {
+      failures++;
+      console.error(`✗ [characters] ${c.id}: portrait "${c.portrait}" does not exist locally`);
+    }
+  }
 }
 
 if (failures > 0) {

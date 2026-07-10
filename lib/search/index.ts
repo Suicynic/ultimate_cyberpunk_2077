@@ -1,5 +1,6 @@
 import Fuse from "fuse.js";
 import { achievements } from "@/data/achievements";
+import { characters } from "@/data/characters";
 import { collectibles } from "@/data/collections";
 import { endings } from "@/data/endings";
 import { jobs } from "@/data/jobs";
@@ -20,6 +21,7 @@ export type SearchDocType =
   | "marker"
   | "collectible"
   | "ending"
+  | "character"
   | "perk"
   | "resource"
   | "note"
@@ -90,6 +92,19 @@ export function buildCanonicalSearchDocs(): SearchDoc[] {
       subtitle: "Ending",
       href: `/endings`,
       spoilerLevel: "endgame",
+    });
+  }
+  for (const c of characters) {
+    // Character names/roles/affiliations are spoiler-safe; the doc never
+    // exposes shielded biography text.
+    docs.push({
+      id: c.id,
+      type: "character",
+      title: c.name,
+      subtitle: c.role,
+      href: `/characters/${c.slug}`,
+      spoilerLevel: "none",
+      keywords: [...(c.aliases ?? []), ...c.affiliations, ...c.tags].join(" "),
     });
   }
   for (const p of perks) {
