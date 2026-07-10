@@ -1,0 +1,42 @@
+name: Resource submission
+description: Suggest an external resource for the Archive
+labels: [resource]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: URL
+    validations:
+      required: true
+  - type: input
+    id: publisher
+    attributes:
+      label: Publisher / creator
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Official
+        - Wiki
+        - Build guide
+        - Map
+        - Achievement guide
+        - Modding
+        - Accessibility
+        - Performance
+        - Lore
+        - Community tool
+        - Video
+        - Save management
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is it worth including?
+      description: One or two sentences. Is it maintained? Version-current?
+    validations:
+      required: true

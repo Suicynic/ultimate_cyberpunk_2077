@@ -1,0 +1,38 @@
+name: Data correction
+description: A game fact in the app is wrong or outdated
+labels: [data, needs-verification]
+body:
+  - type: input
+    id: record
+    attributes:
+      label: Record ID
+      description: e.g. job:the-pickup, ach:breathtaking, perk:edgerunner
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong or outdated?
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: What is correct?
+      description: In your own words — do not paste guide/wiki text.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Game version observed
+      placeholder: "2.3"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: Patch notes, wiki page, or where you verified it. Required for factual claims.
+    validations:
+      required: true

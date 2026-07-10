@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+/**
+ * Ultimate Cyberpunk 2077 — original design system ("NC/OS").
+ * Inspired by industrial control panels and tactical overlays; not a copy of
+ * any proprietary game UI. High-contrast, WCAG-conscious, reduced-motion aware.
+ */
+
+@theme {
+  /* Surfaces */
+  --color-void: #07090d;
+  --color-panel: #0d1117;
+  --color-panel-2: #121926;
+  --color-panel-3: #1a2333;
+  --color-line: #24304a;
+  --color-line-bright: #37548a;
+
+  /* Ink */
+  --color-ink: #e8eef7;
+  --color-ink-dim: #9fb0c8;
+  --color-ink-faint: #64748f;
+
+  /* Accents */
+  --color-holo: #58e6d9; /* primary interactive */
+  --color-holo-dim: #2ba79d;
+  --color-signal: #ff5d7a; /* alerts, destructive, missable */
+  --color-amber: #ffc857; /* warnings, missable flags */
+  --color-lime: #a3e635; /* success / completed */
+  --color-violet: #a78bfa; /* phantom liberty accent */
+
+  --font-display: var(--font-chakra), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-void);
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(88, 230, 217, 0.05), transparent 60%),
+    radial-gradient(900px 400px at 0% 110%, rgba(167, 139, 250, 0.05), transparent 60%),
+    var(--color-void);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  min-height: 100dvh;
+}
+
+/* Scanline & grain overlay — decorative only, disabled for reduced effects. */
+html:not([data-reduced-effects="true"]) body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    display: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html[data-reduced-effects="true"] *,
+html[data-reduced-effects="true"] *::before,
+html[data-reduced-effects="true"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Visible, consistent focus states everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-holo);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: rgba(88, 230, 217, 0.3);
+}
+
+/* Angular panel corner — the signature shape of the design system. */
+.clip-panel {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+}
+
+.clip-chip {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+/* Diagnostic readout text */
+.readout {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* Subtle glitch hover for headings — disabled under reduced effects. */
+@keyframes uc-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.55;
+  }
+  94% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.75;
+  }
+}
+
+html:not([data-reduced-effects="true"]) .fx-flicker {
+  animation: uc-flicker 7s infinite;
+}
+
+/* Leaflet dark-theme adjustments. !important beats leaflet.css, which is
+   imported later in the bundle by the map component. */
+.leaflet-container {
+  background: var(--color-panel-2) !important;
+  font-family: var(--font-display) !important;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--color-ink-dim);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-panel-3);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line-bright);
+  border-radius: 4px;
+}
+.leaflet-bar a {
+  background: var(--color-panel-3);
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.leaflet-bar a:hover {
+  background: var(--color-line);
+}
+
+/* Screen-reader-only utility (in addition to Tailwind's sr-only). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
