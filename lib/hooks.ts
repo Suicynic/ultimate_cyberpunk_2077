@@ -30,7 +30,10 @@ export function useActivePlaythrough(): {
       const found = await db.playthroughs.get(settings.activePlaythroughId);
       if (found) return { playthrough: found };
     }
-    const first = await db.playthroughs.toCollection().first();
+    // Fall back to a visible (non-archived) run so an archived run is never
+    // silently reactivated; only use an archived run if nothing else exists.
+    const firstActive = await db.playthroughs.filter((p) => !p.archived).first();
+    const first = firstActive ?? (await db.playthroughs.toCollection().first());
     return { playthrough: first };
   }, []);
   return { playthrough: result?.playthrough, loading: result === undefined };

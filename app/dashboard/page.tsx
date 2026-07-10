@@ -47,7 +47,15 @@ export default function DashboardPage() {
       playthrough ? db.pins.where("playthroughId").equals(playthrough.id).toArray() : [],
     [playthrough?.id],
   );
-  const notes = useLiveQuery(() => db.notes.orderBy("updatedAt").reverse().limit(5).toArray(), []);
+  const notes = useLiveQuery(
+    async () =>
+      playthrough
+        ? (await db.notes.where("playthroughId").equals(playthrough.id).sortBy("updatedAt"))
+            .reverse()
+            .slice(0, 5)
+        : [],
+    [playthrough?.id],
+  );
   const recentJobs = useLiveQuery(
     async () =>
       playthrough
@@ -90,8 +98,14 @@ export default function DashboardPage() {
   if (!playthrough) return null;
 
   const jp = jobProgress ?? [];
-  const categories = allCategoryProgress(jobs, jp);
-  const overall = overallCompletion(jobs, jp);
+  // One expansion-filtered dataset drives every job stat so the dashboard
+  // agrees with the Job Database (which hides PL jobs for base-game runs) and
+  // a base-game run can actually reach 100%.
+  const availableJobs = jobs.filter(
+    (j) => j.meta.expansion === "base" || playthrough.hasPhantomLiberty,
+  );
+  const categories = allCategoryProgress(availableJobs, jp);
+  const overall = overallCompletion(availableJobs, jp);
   const achSummary = achievementSummary(
     achievements.filter((a) => a.expansion === "base" || playthrough.hasPhantomLiberty),
     achProgress ?? [],
@@ -100,10 +114,7 @@ export default function DashboardPage() {
     (c) => c.expansion === "base" || playthrough.hasPhantomLiberty,
   );
   const colSummary = collectibleSummary(availableCollectibles.length, colProgress ?? []);
-  const nextJobs = suggestedNextJobs(
-    jobs.filter((j) => j.meta.expansion === "base" || playthrough.hasPhantomLiberty),
-    jp,
-  );
+  const nextJobs = suggestedNextJobs(availableJobs, jp);
 
   const addNote = async () => {
     if (!noteDraft.trim()) return;
@@ -167,7 +178,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-end gap-3">
             <span className="font-mono text-4xl font-bold text-holo">{overall}%</span>
             <span className="pb-1 text-xs text-ink-faint">
-              weighted estimate · starter dataset ({jobs.length} tracked jobs)
+              weighted estimate · starter dataset ({availableJobs.length} tracked jobs)
             </span>
           </div>
           <ProgressBar value={overall} label="Overall completion estimate" className="mb-5" />

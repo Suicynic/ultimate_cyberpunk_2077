@@ -239,3 +239,23 @@ describe("collectibleSummary", () => {
     expect(collectibleSummary(4, rows)).toEqual({ total: 4, obtained: 2, percent: 50 });
   });
 });
+
+describe("expansion-filtered completion (base-game runs)", () => {
+  it("a base-game run reaches 100% when all base jobs are done", async () => {
+    const { jobs } = await import("@/data/jobs");
+    const baseJobs = jobs.filter((j) => j.meta.expansion === "base");
+    const progress: JobProgress[] = baseJobs.map((j) => ({
+      id: `run:${j.id}`,
+      playthroughId: "run",
+      jobId: j.id,
+      status: "completed",
+      pinned: false,
+      updatedAt: "",
+    }));
+    // Dashboards must compute over the expansion-filtered set, not the full
+    // dataset — otherwise unreachable Phantom Liberty jobs cap a base run below 100%.
+    expect(overallCompletion(baseJobs, progress)).toBe(100);
+    // Sanity: the full dataset would NOT reach 100% with the same progress.
+    expect(overallCompletion(jobs, progress)).toBeLessThan(100);
+  });
+});

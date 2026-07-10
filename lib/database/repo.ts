@@ -113,68 +113,137 @@ export async function setActivePlaythrough(id: string | undefined): Promise<void
   await updateSettings({ activePlaythroughId: id });
 }
 
+/**
+ * Duplicate a playthrough into a true, independent fork.
+ *
+ * Every table treated as playthrough-owned during {@link deletePlaythrough}
+ * is copied here — job/achievement/collectible/marker/ending/relationship
+ * progress, custom markers, pins, decision-journal entries, quick notes, and
+ * builds that belong to the run. The whole copy runs inside one Dexie
+ * transaction so a partial failure can never leave a half-formed fork.
+ */
 export async function duplicatePlaythrough(id: string): Promise<Playthrough | undefined> {
-  const source = await db.playthroughs.get(id);
-  if (!source) return undefined;
-  const now = nowIso();
-  const copy: Playthrough = {
-    ...source,
-    id: newId("run"),
-    name: `${source.name} (copy)`,
-    createdAt: now,
-    updatedAt: now,
-  };
-  await db.playthroughs.add(copy);
+  const copyId = newId("run");
+  let copy: Playthrough | undefined;
 
-  // Copy per-playthrough progress so a duplicate is a true fork of the run.
-  const [jobs, achievements, collectibles, markers, custom, endings, rels, pins] =
-    await Promise.all([
-      db.jobProgress.where("playthroughId").equals(id).toArray(),
-      db.achievementProgress.where("playthroughId").equals(id).toArray(),
-      db.collectibleProgress.where("playthroughId").equals(id).toArray(),
-      db.markerProgress.where("playthroughId").equals(id).toArray(),
-      db.customMarkers.where("playthroughId").equals(id).toArray(),
-      db.endingProgress.where("playthroughId").equals(id).toArray(),
-      db.relationshipProgress.where("playthroughId").equals(id).toArray(),
-      db.pins.where("playthroughId").equals(id).toArray(),
-    ]);
-  await Promise.all([
-    db.jobProgress.bulkAdd(
-      jobs.map((r) => ({ ...r, id: progressId(copy.id, r.jobId), playthroughId: copy.id })),
-    ),
-    db.achievementProgress.bulkAdd(
-      achievements.map((r) => ({
-        ...r,
-        id: progressId(copy.id, r.achievementId),
-        playthroughId: copy.id,
-      })),
-    ),
-    db.collectibleProgress.bulkAdd(
-      collectibles.map((r) => ({
-        ...r,
-        id: progressId(copy.id, r.collectibleId),
-        playthroughId: copy.id,
-      })),
-    ),
-    db.markerProgress.bulkAdd(
-      markers.map((r) => ({ ...r, id: progressId(copy.id, r.markerId), playthroughId: copy.id })),
-    ),
-    db.customMarkers.bulkAdd(
-      custom.map((r) => ({ ...r, id: newId("cmk"), playthroughId: copy.id })),
-    ),
-    db.endingProgress.bulkAdd(
-      endings.map((r) => ({ ...r, id: progressId(copy.id, r.endingId), playthroughId: copy.id })),
-    ),
-    db.relationshipProgress.bulkAdd(
-      rels.map((r) => ({
-        ...r,
-        id: progressId(copy.id, r.relationshipId),
-        playthroughId: copy.id,
-      })),
-    ),
-    db.pins.bulkAdd(pins.map((r) => ({ ...r, id: newId("pin"), playthroughId: copy.id }))),
-  ]);
+  await db.transaction(
+    "rw",
+    [
+      db.playthroughs,
+      db.jobProgress,
+      db.achievementProgress,
+      db.collectibleProgress,
+      db.markerProgress,
+      db.customMarkers,
+      db.decisions,
+      db.endingProgress,
+      db.relationshipProgress,
+      db.pins,
+      db.notes,
+      db.builds,
+    ],
+    async () => {
+      const source = await db.playthroughs.get(id);
+      if (!source) return;
+      const now = nowIso();
+      copy = {
+        ...source,
+        id: copyId,
+        name: `${source.name} (copy)`,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.playthroughs.add(copy);
+
+      const [
+        jobs,
+        achievements,
+        collectibles,
+        markers,
+        custom,
+        endings,
+        rels,
+        pins,
+        decisions,
+        notes,
+        builds,
+      ] = await Promise.all([
+        db.jobProgress.where("playthroughId").equals(id).toArray(),
+        db.achievementProgress.where("playthroughId").equals(id).toArray(),
+        db.collectibleProgress.where("playthroughId").equals(id).toArray(),
+        db.markerProgress.where("playthroughId").equals(id).toArray(),
+        db.customMarkers.where("playthroughId").equals(id).toArray(),
+        db.endingProgress.where("playthroughId").equals(id).toArray(),
+        db.relationshipProgress.where("playthroughId").equals(id).toArray(),
+        db.pins.where("playthroughId").equals(id).toArray(),
+        db.decisions.where("playthroughId").equals(id).toArray(),
+        db.notes.where("playthroughId").equals(id).toArray(),
+        db.builds.where("playthroughId").equals(id).toArray(),
+      ]);
+
+      await Promise.all([
+        db.jobProgress.bulkAdd(
+          jobs.map((r) => ({ ...r, id: progressId(copyId, r.jobId), playthroughId: copyId })),
+        ),
+        db.achievementProgress.bulkAdd(
+          achievements.map((r) => ({
+            ...r,
+            id: progressId(copyId, r.achievementId),
+            playthroughId: copyId,
+          })),
+        ),
+        db.collectibleProgress.bulkAdd(
+          collectibles.map((r) => ({
+            ...r,
+            id: progressId(copyId, r.collectibleId),
+            playthroughId: copyId,
+          })),
+        ),
+        db.markerProgress.bulkAdd(
+          markers.map((r) => ({ ...r, id: progressId(copyId, r.markerId), playthroughId: copyId })),
+        ),
+        db.customMarkers.bulkAdd(
+          custom.map((r) => ({ ...r, id: newId("cmk"), playthroughId: copyId })),
+        ),
+        db.endingProgress.bulkAdd(
+          endings.map((r) => ({ ...r, id: progressId(copyId, r.endingId), playthroughId: copyId })),
+        ),
+        db.relationshipProgress.bulkAdd(
+          rels.map((r) => ({
+            ...r,
+            id: progressId(copyId, r.relationshipId),
+            playthroughId: copyId,
+          })),
+        ),
+        db.pins.bulkAdd(pins.map((r) => ({ ...r, id: newId("pin"), playthroughId: copyId }))),
+        db.decisions.bulkAdd(
+          decisions.map((r) => ({ ...r, id: newId("dec"), playthroughId: copyId })),
+        ),
+        db.notes.bulkAdd(notes.map((r) => ({ ...r, id: newId("note"), playthroughId: copyId }))),
+        // Builds tied to the run are duplicated so the fork is independent.
+        db.builds.bulkAdd(builds.map((r) => ({ ...r, id: newId("build"), playthroughId: copyId }))),
+      ]);
+    },
+  );
+
   return copy;
+}
+
+/**
+ * Toggle a playthrough's archived flag. When archiving the run that is
+ * currently active, the active pointer is moved to another non-archived run
+ * (or cleared) so mutations never keep flowing to a hidden run.
+ */
+export async function setPlaythroughArchived(id: string, archived: boolean): Promise<void> {
+  await db.transaction("rw", [db.playthroughs, db.settings], async () => {
+    await db.playthroughs.update(id, { archived, updatedAt: nowIso() });
+    if (!archived) return;
+    const settings = await getSettings();
+    if (settings.activePlaythroughId === id) {
+      const next = await db.playthroughs.filter((p) => p.id !== id && !p.archived).first();
+      await updateSettings({ activePlaythroughId: next?.id });
+    }
+  });
 }
 
 /** Permanently delete a playthrough and every record that belongs to it. */

@@ -438,7 +438,9 @@ function JobsPageInner() {
                     </label>
                   ) : (
                     <JobCard
-                      key={job.id}
+                      // Include the run ID so switching playthroughs remounts
+                      // the card and re-seeds its notes draft from the new run.
+                      key={`${playthrough.id}:${job.id}`}
                       job={job}
                       progress={progressByJob.get(job.id)}
                       playthroughId={playthrough.id}

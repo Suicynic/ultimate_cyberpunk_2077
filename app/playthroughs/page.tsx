@@ -20,6 +20,7 @@ import {
   deletePlaythrough,
   duplicatePlaythrough,
   setActivePlaythrough,
+  setPlaythroughArchived,
   updatePlaythrough,
 } from "@/lib/database/repo";
 import { useActivePlaythrough, usePlaythroughs, useSettings } from "@/lib/hooks";
@@ -263,10 +264,7 @@ function RunCard({ run, isActive }: { run: Playthrough; isActive: boolean }) {
         <Button size="sm" onClick={() => void duplicatePlaythrough(run.id)}>
           Duplicate
         </Button>
-        <Button
-          size="sm"
-          onClick={() => void updatePlaythrough(run.id, { archived: !run.archived })}
-        >
+        <Button size="sm" onClick={() => void setPlaythroughArchived(run.id, !run.archived)}>
           {run.archived ? "Unarchive" : "Archive"}
         </Button>
         {confirmDelete ? (
