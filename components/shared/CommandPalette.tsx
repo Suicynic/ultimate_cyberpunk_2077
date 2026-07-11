@@ -91,7 +91,7 @@ export function CommandPalette() {
     >
       <div className="border-b border-line px-3 py-1">
         <Command.Input
-          placeholder="Search jobs, achievements, markers, builds…"
+          placeholder="Search jobs, characters, builds, achievements…"
           className="w-full bg-transparent px-1 py-3 text-sm text-ink placeholder:text-ink-faint focus:outline-none"
         />
       </div>

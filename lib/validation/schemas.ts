@@ -241,6 +241,85 @@ export const relationshipDefSchema = z.object({
   meta: canonicalMetaSchema,
 });
 
+export const factionCategorySchema = z.enum([
+  "corporation",
+  "gang",
+  "nomad",
+  "government",
+  "organization",
+]);
+
+export const factionDefSchema = z.object({
+  id: canonicalId("faction"),
+  name: z.string().min(1),
+  shortName: z.string().optional(),
+  category: factionCategorySchema,
+  description: z.string().min(1),
+  location: z.string().optional(),
+  meta: canonicalMetaSchema,
+});
+
+export const gameScopeSchema = z.enum(["base_game", "phantom_liberty", "both"]);
+export const characterImportanceSchema = z.enum(["primary", "major", "supporting"]);
+export const characterCategorySchema = z.enum([
+  "core",
+  "fixer",
+  "netrunner",
+  "corporate",
+  "nomad",
+  "gang",
+  "night_city",
+  "phantom_liberty",
+]);
+export const characterStatusSchema = z.enum(["active", "unknown", "legend"]);
+export const characterRelationshipTypeSchema = z.enum(["romance", "companion", "quest", "fixer"]);
+
+export const characterDefSchema = z
+  .object({
+    id: canonicalId("character"),
+    slug: z.string().regex(/^[a-z0-9-]+$/, "slug must be kebab-case and spoiler-safe"),
+    name: z.string().min(1),
+    aliases: z.array(z.string().min(1)).optional(),
+    archiveId: z.string().regex(/^NCPA-\d{4}$/, 'archiveId must look like "NCPA-0001"'),
+    portrait: z
+      .string()
+      .regex(/^\/[^\s]+\.(png|jpg|jpeg|webp|avif)$/i, "portrait must be a local /public path")
+      .optional(),
+    initials: z.string().min(1).max(3),
+    role: z.string().min(1),
+    occupations: z.array(z.string().min(1)).optional(),
+    affiliations: z.array(z.string().min(1)).min(1),
+    location: z.string().optional(),
+    gender: z.string().optional(),
+    pronouns: z.string().optional(),
+    status: characterStatusSchema,
+    gameScope: gameScopeSchema,
+    importance: characterImportanceSchema,
+    category: characterCategorySchema,
+    relationshipTypes: z.array(characterRelationshipTypeSchema).optional(),
+    relatedCharacterIds: z.array(canonicalId("character")).optional(),
+    relatedFactionIds: z.array(canonicalId("faction")).optional(),
+    firstRelevantJobIds: z.array(canonicalId("job")).optional(),
+    shortDescription: z.string().min(1).max(200),
+    biography: z.string().min(1),
+    spoilerBiography: z.string().optional(),
+    spoilerLevel: spoilerLevelSchema,
+    tags: z.array(z.string().min(1)),
+    meta: canonicalMetaSchema,
+  })
+  .refine((c) => c.id === `character:${c.slug}`, {
+    message: "id must be `character:${slug}`",
+    path: ["id"],
+  })
+  .refine((c) => (c.spoilerBiography ? c.spoilerLevel !== "none" : true), {
+    message: "a spoilerBiography requires a spoilerLevel above none",
+    path: ["spoilerLevel"],
+  })
+  .refine((c) => (c.spoilerLevel !== "none" ? Boolean(c.spoilerBiography) : true), {
+    message: "a spoilerLevel above none requires a spoilerBiography",
+    path: ["spoilerBiography"],
+  });
+
 export const resourceCategorySchema = z.enum([
   "official",
   "wiki",
@@ -401,6 +480,15 @@ export const relationshipProgressSchema = z.object({
   updatedAt: z.string(),
 });
 
+export const characterProgressSchema = z.object({
+  id: z.string().min(1),
+  playthroughId: z.string().min(1),
+  characterId: z.string().min(1),
+  encountered: z.boolean(),
+  notes: z.string().optional(),
+  updatedAt: z.string(),
+});
+
 export const buildSchema = z.object({
   id: z.string().min(1),
   playthroughId: z.string().optional(),
@@ -481,6 +569,7 @@ export const exportEnvelopeSchema = z.object({
     builds: z.array(buildSchema),
     notes: z.array(noteSchema),
     pins: z.array(pinnedObjectiveSchema),
+    characterProgress: z.array(characterProgressSchema).optional(),
     settings: appSettingsSchema.optional(),
   }),
 });

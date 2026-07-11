@@ -30,6 +30,7 @@ const NAV_ICONS: Record<string, string> = {
   "/builds": "⬡",
   "/achievements": "✦",
   "/collections": "▤",
+  "/characters": "◪",
   "/endings": "◒",
   "/resources": "≡",
   "/settings": "⚙",

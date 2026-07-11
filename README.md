@@ -14,18 +14,19 @@ the community resources that do the deep reference work.
 
 ## What it does
 
-| Area                | What you get                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Command Center**  | Active-run dashboard: completion estimates, pinned objectives, suggested next actions, notes                   |
-| **Active Runs**     | Multiple playthroughs — lifepath, platform, difficulty, status, duplicate/archive/delete                       |
-| **Job Database**    | Source-backed job tracker with prerequisites, missable & point-of-no-return flags, per-job notes, bulk updates |
-| **District Scan**   | Filterable schematic map of Night City & Dogtown with per-run discovery/completion states and custom markers   |
-| **Build Matrix**    | 2.x attribute/perk/relic planner with constraint validation, shareable build URLs, JSON export                 |
-| **Accolades**       | Achievement tracker with count/checklist progress models and secret-achievement shielding                      |
-| **Loadout & Cache** | Opt-in collection tracking: iconic weapons, vehicles, apartments, tarot                                        |
-| **Endgame Intel**   | Spoiler-shielded endings & relationships plus a decision/consequence journal                                   |
-| **Archive**         | Curated, link-checked directory of official and community resources                                            |
-| **Spoiler Shield**  | Global modes, per-item reveal-on-demand, persisted reveals — spoilers are a first-class concern                |
+| Area                  | What you get                                                                                                                                                          |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Command Center**    | Active-run dashboard: completion estimates, pinned objectives, suggested next actions, notes                                                                          |
+| **Active Runs**       | Multiple playthroughs — lifepath, platform, difficulty, status, duplicate/archive/delete                                                                              |
+| **Job Database**      | Source-backed job tracker with prerequisites, missable & point-of-no-return flags, per-job notes, bulk updates                                                        |
+| **District Scan**     | Filterable schematic map of Night City & Dogtown with per-run discovery/completion states and custom markers                                                          |
+| **Build Matrix**      | 2.x attribute/perk/relic planner with constraint validation, shareable build URLs, JSON export                                                                        |
+| **Accolades**         | Achievement tracker with count/checklist progress models and secret-achievement shielding                                                                             |
+| **Loadout & Cache**   | Opt-in collection tracking: iconic weapons, vehicles, apartments, tarot                                                                                               |
+| **Endgame Intel**     | Spoiler-shielded endings & relationships plus a decision/consequence journal                                                                                          |
+| **Character Archive** | Dossier-style personnel records for major Night City & Dogtown characters — spoiler-shielded bios, factions, connections, search/filters, and per-run encounter notes |
+| **Archive**           | Curated, link-checked directory of official and community resources                                                                                                   |
+| **Spoiler Shield**    | Global modes, per-item reveal-on-demand, persisted reveals — spoilers are a first-class concern                                                                       |
 
 Everything is stored **locally in your browser** (IndexedDB). No account, no server, no
 telemetry. Back up or move your data with one-click JSON export/import.
@@ -63,7 +64,7 @@ npm run check:links    # external link health (report only)
 - **Accessible.** Semantic HTML, full keyboard navigation, visible focus states, 44px touch
   targets, reduced-effects mode, and no information carried by color alone.
 - **Small, accurate data over big, scraped data.** The MVP ships a deliberately small
-  starter dataset (~130 records) that exercises every feature. Growing it is a community
+  starter dataset (~180 records) that exercises every feature. Growing it is a community
   effort with sourcing rules — see [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Tech stack

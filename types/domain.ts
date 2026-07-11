@@ -267,6 +267,114 @@ export interface RelationshipDef {
 }
 
 // ---------------------------------------------------------------------------
+// Canonical: Factions
+// ---------------------------------------------------------------------------
+
+export type FactionCategory = "corporation" | "gang" | "nomad" | "government" | "organization";
+
+export interface FactionDef {
+  id: EntityId;
+  name: string;
+  shortName?: string;
+  category: FactionCategory;
+  /** Spoiler-safe paraphrase — original wording, never copied. */
+  description: string;
+  /** Home district or region, when the game establishes one. */
+  location?: string;
+  meta: CanonicalMeta;
+}
+
+// ---------------------------------------------------------------------------
+// Canonical: Character archive (NC Personnel Archive)
+// ---------------------------------------------------------------------------
+
+/**
+ * Which release(s) a character is relevant to. Distinct from
+ * `CanonicalMeta.expansion` (which records where a fact was verified) because a
+ * character can span both the base game and Phantom Liberty.
+ */
+export type GameScope = "base_game" | "phantom_liberty" | "both";
+
+export type CharacterImportance = "primary" | "major" | "supporting";
+
+/**
+ * Loose character grouping used only for the archive's category filter. It is
+ * deliberately coarse and always spoiler-safe.
+ */
+export type CharacterCategory =
+  | "core"
+  | "fixer"
+  | "netrunner"
+  | "corporate"
+  | "nomad"
+  | "gang"
+  | "night_city"
+  | "phantom_liberty";
+
+/**
+ * Spoiler-safe operational status shown by default. This describes a
+ * character's general standing as the player first encounters them — never a
+ * fate, death, or twist. Anything spoiler-sensitive lives in
+ * `spoilerBiography` behind the shield.
+ */
+export type CharacterStatus = "active" | "unknown" | "legend";
+
+/** Spoiler-safe relationship relevance tags (mirrors the endings dataset). */
+export type CharacterRelationshipType = "romance" | "companion" | "quest" | "fixer";
+
+export interface CharacterDef {
+  /** Namespaced canonical ID, e.g. "character:panam-palmer". */
+  id: EntityId;
+  /** URL slug — must equal the ID suffix and stay spoiler-safe. */
+  slug: string;
+  /** Publicly-known name (names are not treated as spoilers). */
+  name: string;
+  /** Spoiler-safe aliases / handles only. */
+  aliases?: string[];
+  /**
+   * Original in-app catalog code assigned by this project (e.g. "NCPA-0001").
+   * Not a game statistic — it is a record locator for the archive UI only.
+   */
+  archiveId: string;
+  /** Optional local portrait path under /public. Fallback used when absent. */
+  portrait?: string;
+  /** Fallback identity mark, e.g. "V", "JS". */
+  initials: string;
+  /** Spoiler-safe role / occupation summary. */
+  role: string;
+  occupations?: string[];
+  /** Spoiler-safe affiliation display strings; the first is treated as primary. */
+  affiliations: string[];
+  /** Optional district / region. */
+  location?: string;
+  /** Only when the game establishes it. */
+  gender?: string;
+  /** Only when the game establishes it. */
+  pronouns?: string;
+  status: CharacterStatus;
+  gameScope: GameScope;
+  importance: CharacterImportance;
+  category: CharacterCategory;
+  relationshipTypes?: CharacterRelationshipType[];
+  /** Canonical references to other characters in this dataset. */
+  relatedCharacterIds?: EntityId[];
+  /** Canonical references into the factions dataset. */
+  relatedFactionIds?: EntityId[];
+  /** Canonical references into the jobs dataset. */
+  firstRelevantJobIds?: EntityId[];
+  /** Spoiler-safe one-line excerpt for cards. */
+  shortDescription: string;
+  /** Spoiler-safe biography shown by default. */
+  biography: string;
+  /** Spoiler-sensitive material shown only behind the spoiler shield. */
+  spoilerBiography?: string;
+  /** Gating level for `spoilerBiography`; "none" when there is none. */
+  spoilerLevel: SpoilerLevel;
+  tags: string[];
+  meta: CanonicalMeta;
+}
+
+// ---------------------------------------------------------------------------
 // Canonical: Resource library
 // ---------------------------------------------------------------------------
 
@@ -447,6 +555,15 @@ export interface RelationshipProgress {
   updatedAt: string;
 }
 
+export interface CharacterProgress {
+  id: string; // `${playthroughId}:${characterId}`
+  playthroughId: EntityId;
+  characterId: EntityId;
+  encountered: boolean;
+  notes?: string;
+  updatedAt: string;
+}
+
 export interface BuildEquipment {
   weapons: string[];
   cyberware: string[];
@@ -529,8 +646,10 @@ export interface ExportEnvelope {
     builds: Build[];
     notes: Note[];
     pins: PinnedObjective[];
+    /** Optional for backward compatibility with v1 exports. */
+    characterProgress?: CharacterProgress[];
     settings?: AppSettings;
   };
 }
 
-export const EXPORT_SCHEMA_VERSION = 1;
+export const EXPORT_SCHEMA_VERSION = 2;

@@ -5,16 +5,20 @@
 import { describe, expect, it } from "vitest";
 import { achievements } from "@/data/achievements";
 import { attributes, perks, relicPerks } from "@/data/build";
+import { characters } from "@/data/characters";
 import { collectibles } from "@/data/collections";
 import { endings, relationships } from "@/data/endings";
+import { factions } from "@/data/factions";
 import { jobs } from "@/data/jobs";
 import { mapMarkers } from "@/data/map";
 import { resources } from "@/data/resources";
 import {
   achievementDefSchema,
   attributeDefSchema,
+  characterDefSchema,
   collectibleDefSchema,
   endingDefSchema,
+  factionDefSchema,
   jobDefSchema,
   mapMarkerDefSchema,
   perkDefSchema,
@@ -34,6 +38,8 @@ const suites = [
   ["endings", endings, endingDefSchema],
   ["relationships", relationships, relationshipDefSchema],
   ["resources", resources, resourceDefSchema],
+  ["factions", factions, factionDefSchema],
+  ["characters", characters, characterDefSchema],
 ] as const;
 
 describe("canonical datasets", () => {

@@ -1,7 +1,13 @@
 import type {
+  CharacterCategory,
+  CharacterImportance,
+  CharacterRelationshipType,
+  CharacterStatus,
   CollectibleState,
   CollectibleType,
   District,
+  FactionCategory,
+  GameScope,
   JobCategory,
   JobStatus,
   Lifepath,
@@ -24,6 +30,7 @@ export const NAV_SECTIONS = [
   { href: "/builds", thematic: "Build Matrix", conventional: "Build Planner" },
   { href: "/achievements", thematic: "Accolades", conventional: "Achievements" },
   { href: "/collections", thematic: "Loadout & Cache", conventional: "Collections" },
+  { href: "/characters", thematic: "Personnel Archive", conventional: "Characters" },
   { href: "/endings", thematic: "Endgame Intel", conventional: "Endings" },
   { href: "/resources", thematic: "Archive", conventional: "Resources" },
   { href: "/settings", thematic: "System Config", conventional: "Settings" },
@@ -131,4 +138,55 @@ export const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
   version_outdated: "Version outdated",
   disputed: "Disputed",
   deprecated: "Deprecated",
+};
+
+export const GAME_SCOPE_LABEL: Record<GameScope, string> = {
+  base_game: "Base game",
+  phantom_liberty: "Phantom Liberty",
+  both: "Base + Phantom Liberty",
+};
+
+/** Compact game-scope label for tight card badges. */
+export const GAME_SCOPE_SHORT: Record<GameScope, string> = {
+  base_game: "Base",
+  phantom_liberty: "PL",
+  both: "Base · PL",
+};
+
+export const CHARACTER_IMPORTANCE_LABEL: Record<CharacterImportance, string> = {
+  primary: "Primary",
+  major: "Major",
+  supporting: "Supporting",
+};
+
+export const CHARACTER_CATEGORY_LABEL: Record<CharacterCategory, string> = {
+  core: "Core crew",
+  fixer: "Fixers",
+  netrunner: "Netrunners",
+  corporate: "Corporate",
+  nomad: "Nomads",
+  gang: "Gangs",
+  night_city: "Night City figures",
+  phantom_liberty: "Phantom Liberty",
+};
+
+export const CHARACTER_STATUS_LABEL: Record<CharacterStatus, string> = {
+  active: "Active",
+  unknown: "Unknown",
+  legend: "Legend",
+};
+
+export const CHARACTER_RELATIONSHIP_TYPE_LABEL: Record<CharacterRelationshipType, string> = {
+  romance: "Romanceable",
+  companion: "Companion",
+  quest: "Quest character",
+  fixer: "Fixer",
+};
+
+export const FACTION_CATEGORY_LABEL: Record<FactionCategory, string> = {
+  corporation: "Corporation",
+  gang: "Gang",
+  nomad: "Nomad",
+  government: "Government",
+  organization: "Organization",
 };

@@ -5,6 +5,7 @@ import type {
   AchievementState,
   AppSettings,
   Build,
+  CharacterProgress,
   CollectibleProgress,
   CollectibleState,
   JobProgress,
@@ -159,6 +160,7 @@ export async function duplicatePlaythrough(id: string): Promise<Playthrough | un
       db.decisions,
       db.endingProgress,
       db.relationshipProgress,
+      db.characterProgress,
       db.pins,
       db.notes,
       db.builds,
@@ -184,6 +186,7 @@ export async function duplicatePlaythrough(id: string): Promise<Playthrough | un
         custom,
         endings,
         rels,
+        characters,
         pins,
         decisions,
         notes,
@@ -196,6 +199,7 @@ export async function duplicatePlaythrough(id: string): Promise<Playthrough | un
         db.customMarkers.where("playthroughId").equals(id).toArray(),
         db.endingProgress.where("playthroughId").equals(id).toArray(),
         db.relationshipProgress.where("playthroughId").equals(id).toArray(),
+        db.characterProgress.where("playthroughId").equals(id).toArray(),
         db.pins.where("playthroughId").equals(id).toArray(),
         db.decisions.where("playthroughId").equals(id).toArray(),
         db.notes.where("playthroughId").equals(id).toArray(),
@@ -233,6 +237,13 @@ export async function duplicatePlaythrough(id: string): Promise<Playthrough | un
           rels.map((r) => ({
             ...r,
             id: progressId(copyId, r.relationshipId),
+            playthroughId: copyId,
+          })),
+        ),
+        db.characterProgress.bulkAdd(
+          characters.map((r) => ({
+            ...r,
+            id: progressId(copyId, r.characterId),
             playthroughId: copyId,
           })),
         ),
@@ -281,6 +292,7 @@ export async function deletePlaythrough(id: string): Promise<void> {
       db.decisions,
       db.endingProgress,
       db.relationshipProgress,
+      db.characterProgress,
       db.pins,
       db.notes,
       db.builds,
@@ -297,6 +309,7 @@ export async function deletePlaythrough(id: string): Promise<void> {
         db.decisions.where("playthroughId").equals(id).delete(),
         db.endingProgress.where("playthroughId").equals(id).delete(),
         db.relationshipProgress.where("playthroughId").equals(id).delete(),
+        db.characterProgress.where("playthroughId").equals(id).delete(),
         db.pins.where("playthroughId").equals(id).delete(),
         db.notes.where("playthroughId").equals(id).delete(),
         db.builds.where("playthroughId").equals(id).modify({ playthroughId: undefined }),
@@ -438,6 +451,27 @@ export async function setMarkerProgress(
     markerId,
     discovered: patch.discovered ?? existing?.discovered ?? false,
     completed: patch.completed ?? existing?.completed ?? false,
+    notes: patch.notes ?? existing?.notes,
+    updatedAt: nowIso(),
+  });
+}
+
+// --------------------------------------------------------------------------
+// Character progress (per-run encounter + notes)
+// --------------------------------------------------------------------------
+
+export async function setCharacterProgress(
+  playthroughId: string,
+  characterId: string,
+  patch: Partial<Pick<CharacterProgress, "encountered" | "notes">>,
+): Promise<void> {
+  const id = progressId(playthroughId, characterId);
+  const existing = await db.characterProgress.get(id);
+  await db.characterProgress.put({
+    id,
+    playthroughId,
+    characterId,
+    encountered: patch.encountered ?? existing?.encountered ?? false,
     notes: patch.notes ?? existing?.notes,
     updatedAt: nowIso(),
   });
