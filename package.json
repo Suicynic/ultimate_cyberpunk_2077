@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Unofficial local-first companion app for planning, tracking, and documenting Cyberpunk 2077 and Phantom Liberty playthroughs.",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
