@@ -28,8 +28,12 @@ the community resources that do the deep reference work.
 | **Archive**           | Curated, link-checked directory of official and community resources                                                                                                   |
 | **Spoiler Shield**    | Global modes, per-item reveal-on-demand, persisted reveals — spoilers are a first-class concern                                                                       |
 
-Everything is stored **locally in your browser** (IndexedDB). No account, no server, no
-telemetry. Back up or move your data with one-click JSON export/import.
+Everything you create is stored **locally in your browser** (IndexedDB) — no account, no
+server-side database, and your playthroughs, notes, and settings never leave your device. The
+app collects only anonymous, cookie-free page-view analytics
+([Vercel Web Analytics](https://vercel.com/docs/analytics/privacy-policy)); URLs are redacted to
+pathname-only, so share links such as `/builds?b=…` are never transmitted. Back up or move your
+data with one-click JSON export/import.
 
 ## Getting started
 

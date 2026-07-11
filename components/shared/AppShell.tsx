@@ -190,8 +190,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <footer className="border-t border-line pt-4 pb-safe [--sa-pb:1rem] px-safe [--sa-px:1rem] text-center">
           <p className="mx-auto max-w-3xl text-[11px] leading-relaxed text-ink-faint">
             Unofficial fan project. Not affiliated with, endorsed by, or sponsored by CD Projekt
-            Red. Cyberpunk 2077 and related marks are the property of their respective owners. All
-            progress data stays in your browser.{" "}
+            Red. Cyberpunk 2077 and related marks are the property of their respective owners. Your
+            saved progress stays in your browser; only anonymous, cookie-free page views are
+            collected.{" "}
             <Link href="/resources" className="text-holo underline underline-offset-2">
               Sources & disclaimer
             </Link>
