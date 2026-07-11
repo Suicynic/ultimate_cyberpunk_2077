@@ -31,9 +31,9 @@ the community resources that do the deep reference work.
 Everything you create is stored **locally in your browser** (IndexedDB) — no account, no
 server-side database, and your playthroughs, notes, and settings never leave your device. The
 app collects only anonymous, cookie-free page-view analytics
-([Vercel Web Analytics](https://vercel.com/docs/analytics/privacy-policy)); URLs are redacted to
-pathname-only, so share links such as `/builds?b=…` are never transmitted. Back up or move your
-data with one-click JSON export/import.
+([Vercel Web Analytics](https://vercel.com/docs/analytics/privacy-policy)); query strings are
+stripped before any event is sent — only `utm_*` campaign tags are kept — so share links such as
+`/builds?b=…` are never transmitted. Back up or move your data with one-click JSON export/import.
 
 ## Getting started
 
