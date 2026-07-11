@@ -64,7 +64,9 @@ describe("iPhone safe-area handling (issue #2)", () => {
 
   describe("application to edge-reaching surfaces only", () => {
     const shell = read("../../components/shared/AppShell.tsx");
-    const mapPage = read("../../app/map/page.tsx");
+    // The map bottom sheet moved from the route file into the DistrictScan client
+    // component when the map surface was split into focused pieces.
+    const mapPage = read("../../app/map/DistrictScan.tsx");
 
     it("pads the sticky top header (top + horizontal insets)", () => {
       const header = shell.match(/<header[^>]*sticky top-0[^>]*>/)?.[0] ?? "";

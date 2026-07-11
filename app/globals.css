@@ -225,6 +225,166 @@ html:not([data-reduced-effects="true"]) .fx-flicker {
   background: var(--color-line);
 }
 
+/* ---------------------------------------------------------------------------
+ * Schematic map markers (district scan)
+ *
+ * Rendered as real <button>s inside an L.divIcon so hover, keyboard focus and
+ * selection are all first-class. Category is signalled by hue + glyph + label
+ * (never colour alone); progress and selection add non-colour affordances
+ * (fill density, a check badge, a bright ring). Per-marker hue arrives as the
+ * inline custom property --dot.
+ * ------------------------------------------------------------------------- */
+.ncmap-marker-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.ncmap-marker {
+  --dot: var(--color-ink-dim);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--dot);
+  background: color-mix(in srgb, var(--dot) 20%, var(--color-panel));
+  border: 2px solid var(--dot);
+  border-radius: 9999px;
+  line-height: 1;
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.ncmap-marker__glyph {
+  font-size: 14px;
+  font-weight: 700;
+  transform: translateY(-0.5px);
+}
+
+/* Completion check — hidden until the marker is completed. */
+.ncmap-marker__check {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-void);
+  background: var(--color-lime);
+  border-radius: 9999px;
+}
+
+/* Discovered-but-not-completed: denser fill so state reads without colour. */
+.ncmap-marker.is-discovered {
+  background: color-mix(in srgb, var(--dot) 55%, var(--color-panel));
+  color: var(--color-void);
+}
+
+/* Custom markers keep the established dashed outline. */
+.ncmap-marker.is-custom {
+  border-style: dashed;
+}
+
+/* Completed: recede the body, show the check badge. */
+.ncmap-marker.is-completed {
+  background: color-mix(in srgb, var(--dot) 12%, var(--color-panel));
+  opacity: 0.8;
+}
+.ncmap-marker.is-completed .ncmap-marker__glyph {
+  opacity: 0.5;
+}
+.ncmap-marker.is-completed .ncmap-marker__check {
+  display: flex;
+}
+
+/* Hover AND keyboard focus share one emphasis so a focused marker is at least
+   as visible as a hovered one (the global :focus-visible outline stacks on top
+   for keyboard users). */
+.ncmap-marker:hover,
+.ncmap-marker:focus-visible {
+  transform: scale(1.25);
+  background: color-mix(in srgb, var(--dot) 45%, var(--color-panel));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 40%, transparent);
+  outline: none;
+  z-index: 1000;
+}
+.ncmap-marker:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--color-void),
+    0 0 0 5px var(--color-holo);
+}
+
+/* Selected: unmistakable bright ring + upscale, independent of category hue. */
+.ncmap-marker.is-selected {
+  transform: scale(1.3);
+  border-color: var(--color-ink);
+  box-shadow:
+    0 0 0 2px var(--color-void),
+    0 0 0 5px var(--color-holo);
+  z-index: 1200;
+}
+.ncmap-marker.is-selected:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--color-void),
+    0 0 0 5px var(--color-holo),
+    0 0 0 8px color-mix(in srgb, var(--color-holo) 45%, transparent);
+}
+
+/* District labels: subtle, non-interactive, and beneath the markers. */
+.leaflet-tooltip.ncmap-district-label {
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #55698c;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.leaflet-tooltip.ncmap-district-label::before {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * Narrow themed scrollbar — replaces the heavy native sidebar scrollbar while
+ * keeping the region fully scrollable and keyboard-operable.
+ * ------------------------------------------------------------------------- */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-bright) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-line-bright);
+  background-clip: padding-box;
+}
+
 /* Screen-reader-only utility (in addition to Tailwind's sr-only). */
 .visually-hidden {
   position: absolute;
