@@ -22,6 +22,7 @@ At the time of writing:
 - The application does not use a server-side application database.
 - Playthroughs, notes, settings, and other user-created data are stored locally in the user's browser through IndexedDB.
 - The project does not intentionally transmit locally stored playthrough data to the project maintainers.
+- The production deployment collects anonymous, cookie-free page-view analytics through Vercel Web Analytics. Each reported URL has its query string and hash stripped before the event is sent — only `utm_*` campaign tags are retained, for traffic attribution — so share links such as `/builds?b=…` and other query-backed routes never expose user-created data. No IndexedDB records, notes, or settings are transmitted.
 - The production application is hosted through Vercel.
 - Source code and development activity are publicly available through GitHub.
 
