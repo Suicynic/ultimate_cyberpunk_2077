@@ -42,33 +42,51 @@ const MIN_ARC_PX = 24;
 const BASE_RING_PX = 18;
 
 /**
- * Greedy single-link clustering: group any points within `thresholdUnits` of a
- * group member. Deterministic — points are processed in ascending id order so
- * the same input always yields the same groups (and therefore stable offsets).
+ * Single-link clustering by connected components (union-find): two points join
+ * the same group when a chain of within-threshold points connects them, so a
+ * "bridge" point that is close to two otherwise-separate points correctly merges
+ * both — a greedy first-match grouping would leave one of them nearly on top of
+ * a neighbour. Deterministic: points are processed in ascending id order, so the
+ * same input always yields the same groups (and therefore stable offsets).
  */
 function clusterByProximity(points: LayoutPoint[], thresholdUnits: number): LayoutPoint[][] {
   const ordered = [...points].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  const groups: LayoutPoint[][] = [];
-  const t2 = thresholdUnits * thresholdUnits;
+  const n = ordered.length;
+  const parent = Array.from({ length: n }, (_, i) => i);
 
-  for (const p of ordered) {
-    let placed = false;
-    for (const group of groups) {
-      if (
-        group.some((q) => {
-          const dx = q.x - p.x;
-          const dy = q.y - p.y;
-          return dx * dx + dy * dy <= t2;
-        })
-      ) {
-        group.push(p);
-        placed = true;
-        break;
-      }
+  const find = (i: number): number => {
+    let root = i;
+    while (parent[root] !== root) root = parent[root]!;
+    while (parent[i] !== root) {
+      const next = parent[i]!;
+      parent[i] = root;
+      i = next;
     }
-    if (!placed) groups.push([p]);
+    return root;
+  };
+  const union = (i: number, j: number) => {
+    const ri = find(i);
+    const rj = find(j);
+    if (ri !== rj) parent[Math.max(ri, rj)] = Math.min(ri, rj);
+  };
+
+  const t2 = thresholdUnits * thresholdUnits;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dx = ordered[i]!.x - ordered[j]!.x;
+      const dy = ordered[i]!.y - ordered[j]!.y;
+      if (dx * dx + dy * dy <= t2) union(i, j);
+    }
   }
-  return groups;
+
+  const byRoot = new Map<number, LayoutPoint[]>();
+  for (let i = 0; i < n; i++) {
+    const root = find(i);
+    const bucket = byRoot.get(root);
+    if (bucket) bucket.push(ordered[i]!);
+    else byRoot.set(root, [ordered[i]!]);
+  }
+  return [...byRoot.values()];
 }
 
 /**

@@ -11,7 +11,9 @@ const pinnedChromium = () =>
  * overridden with PORT so the suite can run when 3000 is already in use by
  * another local dev server. `next start` reads the same PORT env var.
  */
-const PORT = Number(process.env.PORT ?? 3000);
+const parsedPort = Number(process.env.PORT);
+const PORT =
+  Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort < 65536 ? parsedPort : 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({

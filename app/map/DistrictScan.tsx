@@ -42,12 +42,11 @@ function DistrictScanInner() {
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const [category, setCategory] = React.useState<CategoryFilter>(
-    (params.get("cat") as CategoryFilter) ?? "all",
-  );
-  const [district, setDistrict] = React.useState<DistrictFilter>(
-    (params.get("d") as DistrictFilter) ?? "all",
-  );
+  // Category + district are derived straight from the URL (single source of
+  // truth) so browser back/forward and internal links keep the controls and the
+  // visible markers in sync. Search + the two toggles are ephemeral local state.
+  const category = (params.get("cat") as CategoryFilter) ?? "all";
+  const district = (params.get("d") as DistrictFilter) ?? "all";
   const [query, setQuery] = React.useState("");
   const [onlyIncomplete, setOnlyIncomplete] = React.useState(false);
   const [onlyUndiscovered, setOnlyUndiscovered] = React.useState(false);
@@ -140,18 +139,19 @@ function DistrictScanInner() {
     new Set(displayMarkers.map((m) => m.category)),
   ) as MarkerCategory[];
 
-  const filterSummary: string[] = [];
-  if (query.trim()) filterSummary.push(`“${query.trim()}”`);
-  if (category !== "all") filterSummary.push(MARKER_CATEGORY_LABEL[category]);
-  if (district !== "all") filterSummary.push(DISTRICT_LABEL[district]);
-  if (onlyIncomplete) filterSummary.push("Incomplete");
-  if (onlyUndiscovered) filterSummary.push("Undiscovered");
+  // Stable keys (not the label text) so two filters whose labels happen to match
+  // — e.g. a search term equal to a category name — never collide as React keys.
+  const filterSummary: { key: string; label: string }[] = [];
+  if (query.trim()) filterSummary.push({ key: "search", label: `“${query.trim()}”` });
+  if (category !== "all")
+    filterSummary.push({ key: "category", label: MARKER_CATEGORY_LABEL[category] });
+  if (district !== "all") filterSummary.push({ key: "district", label: DISTRICT_LABEL[district] });
+  if (onlyIncomplete) filterSummary.push({ key: "incomplete", label: "Incomplete" });
+  if (onlyUndiscovered) filterSummary.push({ key: "undiscovered", label: "Undiscovered" });
   const hasActiveFilters = filterSummary.length > 0;
 
   const clearFilters = () => {
     setQuery("");
-    setCategory("all");
-    setDistrict("all");
     setOnlyIncomplete(false);
     setOnlyUndiscovered(false);
     syncUrl({ cat: "all", d: "all" });
@@ -175,6 +175,10 @@ function DistrictScanInner() {
     syncUrl({ focus: marker.id });
   };
 
+  // Discovery/completion are only tracked for canonical markers, so the ratios
+  // must be denominated by the canonical count — custom markers (always shown as
+  // "discovered", never completable) would otherwise skew both numerators.
+  const trackableCount = available.filter((m) => !m.isCustom).length;
   const discoveredCount = available.filter((m) => !m.isCustom && m.discovered).length;
   const completedCount = available.filter((m) => !m.isCustom && m.completed).length;
   const districtCount = new Set(available.map((m) => m.district)).size;
@@ -205,15 +209,9 @@ function DistrictScanInner() {
         query={query}
         onQuery={setQuery}
         category={category}
-        onCategory={(v) => {
-          setCategory(v);
-          syncUrl({ cat: v });
-        }}
+        onCategory={(v) => syncUrl({ cat: v })}
         district={district}
-        onDistrict={(v) => {
-          setDistrict(v);
-          syncUrl({ d: v });
-        }}
+        onDistrict={(v) => syncUrl({ d: v })}
         onlyIncomplete={onlyIncomplete}
         onToggleIncomplete={() => setOnlyIncomplete((v) => !v)}
         onlyUndiscovered={onlyUndiscovered}
@@ -273,6 +271,7 @@ function DistrictScanInner() {
             <NoSelectionPanel
               hasPlaythrough={!!playthrough}
               signalCount={available.length}
+              trackableCount={trackableCount}
               districtCount={districtCount}
               discoveredCount={discoveredCount}
               completedCount={completedCount}
@@ -288,12 +287,14 @@ function DistrictScanInner() {
 function NoSelectionPanel({
   hasPlaythrough,
   signalCount,
+  trackableCount,
   districtCount,
   discoveredCount,
   completedCount,
 }: {
   hasPlaythrough: boolean;
   signalCount: number;
+  trackableCount: number;
   districtCount: number;
   discoveredCount: number;
   completedCount: number;
@@ -322,13 +323,13 @@ function NoSelectionPanel({
             <div>
               <dt className="text-ink-faint">Discovered</dt>
               <dd className="text-holo">
-                {discoveredCount}/{signalCount}
+                {discoveredCount}/{trackableCount}
               </dd>
             </div>
             <div>
               <dt className="text-ink-faint">Completed</dt>
               <dd className="text-lime">
-                {completedCount}/{signalCount}
+                {completedCount}/{trackableCount}
               </dd>
             </div>
           </>

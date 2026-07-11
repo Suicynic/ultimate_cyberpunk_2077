@@ -1,8 +1,10 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as navigation from "next/navigation";
 import { db } from "@/lib/database/db";
+import { createPlaythrough } from "@/lib/database/repo";
+import { nowIso } from "@/lib/ids";
 import { DistrictScan } from "@/app/map/DistrictScan";
 
 /**
@@ -183,5 +185,51 @@ describe("DistrictScan", () => {
       "data-selected",
       "marker:viktors-clinic",
     );
+  });
+
+  it("reconciles the controls and markers when the URL changes after mount", async () => {
+    render(<DistrictScan />);
+    await map();
+    expect(markerButtons()).toHaveLength(16);
+
+    // Browser back/forward or an internal link changes the query string after
+    // mount — the derived controls and visible set must follow.
+    act(() => setParams("cat=ripperdoc"));
+
+    await waitFor(() => expect(screen.getAllByTestId("map-marker")).toHaveLength(2));
+    expect(screen.getByLabelText(/category filter/i)).toHaveValue("ripperdoc");
+    expect(liveCount()).toHaveTextContent("2 of 16 signals");
+  });
+
+  it("denominates discovery/completion by canonical signals, excluding custom markers", async () => {
+    const run = await createPlaythrough({
+      name: "Custom Marker Runner",
+      lifepath: "nomad",
+      difficulty: "normal",
+      platform: "pc_steam",
+      hasPhantomLiberty: true,
+    });
+    await db.customMarkers.add({
+      id: "cmk:test-1",
+      playthroughId: run.id,
+      name: "My stash",
+      x: 30,
+      y: 40,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    });
+
+    render(<DistrictScan />);
+    await map();
+
+    const panel = screen.getByTestId("detail-panel");
+    // The custom marker counts toward total signals (16 canonical + 1 custom)…
+    await waitFor(() =>
+      expect(within(panel).getByText("Signals").nextElementSibling).toHaveTextContent("17"),
+    );
+    // …but the discovery/completion ratios are denominated by canonical signals
+    // only (16), never 17 — the custom marker isn't trackable.
+    expect(within(panel).getAllByText("0/16")).toHaveLength(2);
+    expect(within(panel).queryByText(/\/17$/)).not.toBeInTheDocument();
   });
 });

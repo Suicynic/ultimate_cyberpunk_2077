@@ -28,8 +28,11 @@ export function MapLegend({
   totalCount: number;
   /** Categories present in the current visible set, unordered. */
   categories: MarkerCategory[];
-  /** Concise, spoiler-safe descriptions of each active filter (may be empty). */
-  filterSummary: string[];
+  /**
+   * Concise, spoiler-safe descriptions of each active filter (may be empty).
+   * Each carries a stable `key` so labels that coincide never collide.
+   */
+  filterSummary: { key: string; label: string }[];
 }) {
   const present = new Set(categories);
   const legend = LEGEND_CATEGORY_ORDER.filter((c) => present.has(c));
@@ -46,10 +49,10 @@ export function MapLegend({
           <ul className="flex flex-wrap items-center gap-1" aria-label="Active filters">
             {filterSummary.map((s) => (
               <li
-                key={s}
+                key={s.key}
                 className="clip-chip border border-line-bright bg-panel-3 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-ink-dim"
               >
-                {s}
+                {s.label}
               </li>
             ))}
           </ul>

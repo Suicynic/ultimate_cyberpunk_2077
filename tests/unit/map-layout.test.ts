@@ -49,6 +49,29 @@ describe("resolveMarkerLayout", () => {
     expect(pixelDistance(a, b, zoom)).toBeGreaterThanOrEqual(30);
   });
 
+  it("merges groups joined by a bridge point (connected components, not greedy)", () => {
+    // a and b are 3 units apart (> the 2.75-unit threshold at zoom 3), so a
+    // greedy first-match grouping would put a+c together and leave b nearly on
+    // top of c. c bridges both, so all three must land in one fanned-out group.
+    const zoom = 3;
+    const points: LayoutPoint[] = [
+      { id: "a", x: 0, y: 0 },
+      { id: "b", x: 0, y: 3 },
+      { id: "c", x: 0, y: 0.5 }, // within threshold of BOTH a and b
+    ];
+    const out = resolveMarkerLayout(points, zoom);
+    for (const id of ["a", "b", "c"]) expect(out.get(id)!.offset).toBe(true);
+
+    const placed = points.map((p) => out.get(p.id)!);
+    for (let i = 0; i < placed.length; i++) {
+      for (let j = i + 1; j < placed.length; j++) {
+        // Each marker centre must stay clear of any other marker's body
+        // (radius ~15px) so all three remain individually clickable.
+        expect(pixelDistance(placed[i]!, placed[j]!, zoom)).toBeGreaterThan(20);
+      }
+    }
+  });
+
   it("keeps every marker in the dense Watson cluster separable at default zoom", () => {
     const zoom = 3;
     // The real Watson signals — several sit within a couple of units.
