@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
         </div>
-        <nav aria-label="Primary" className="flex-1 overflow-y-auto p-2">
+        <nav aria-label="Primary" className="scroll-thin flex-1 overflow-y-auto p-2">
           <NavLinks />
         </nav>
         <div className="border-t border-line p-3">
@@ -168,7 +168,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               // Full-height fixed drawer: pad its top past the notch, its bottom
               // past the home indicator, and its left past the side inset so the
               // nav controls stay reachable. Right edge is interior (keeps pr-3).
-              className="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-line bg-panel pr-3 pt-safe [--sa-pt:0.75rem] pb-safe [--sa-pb:0.75rem] pl-safe [--sa-pl:0.75rem]"
+              className="scroll-thin fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-line bg-panel pr-3 pt-safe [--sa-pt:0.75rem] pb-safe [--sa-pb:0.75rem] pl-safe [--sa-pl:0.75rem]"
             >
               <p className="readout mb-2 px-2">{"// navigation"}</p>
               <NavLinks onNavigate={() => setMobileNavOpen(false)} />

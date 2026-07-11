@@ -6,6 +6,16 @@ const pinnedChromium = () =>
     ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } }
     : {};
 
+/**
+ * Port the app under test listens on. Defaults to 3000 (unchanged) but can be
+ * overridden with PORT so the suite can run when 3000 is already in use by
+ * another local dev server. `next start` reads the same PORT env var.
+ */
+const parsedPort = Number(process.env.PORT);
+const PORT =
+  Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort < 65536 ? parsedPort : 3000;
+const BASE_URL = `http://localhost:${PORT}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -14,7 +24,7 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: BASE_URL,
     trace: "on-first-retry",
   },
   projects: [
@@ -29,7 +39,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run build && npm run start",
-    url: "http://localhost:3000",
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
   },
