@@ -38,14 +38,14 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@playwright/test": "^1.52.0",
-    "@tailwindcss/postcss": "^4.1.4",
+    "@eslint/eslintrc": "^3.3.6",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/leaflet": "^1.9.17",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
@@ -54,9 +54,9 @@
     "eslint-config-next": "^15.3.0",
     "fake-indexeddb": "^6.0.0",
     "jsdom": "^26.0.0",
-    "prettier": "^3.5.3",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4.1.4",
-    "tsx": "^4.19.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.8.3",
     "vitest": "^3.1.1"
   }
